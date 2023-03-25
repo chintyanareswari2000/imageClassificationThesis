@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 from tensorflow.keras.preprocessing import image
 import matplotlib.pyplot as plt
-from keras.preprocessing import image
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 from keras.layers import BatchNormalization
@@ -16,8 +15,8 @@ image_directory = r"D:\CHINTYA'S\Privacy\Skripsi\Image Classification G-Colab\Mu
 
 # Now let us read metadata to get our Y values (multiple lables)
 df = pd.read_csv(r"D:\CHINTYA'S\Privacy\Skripsi\Image Classification G-Colab\Multilabel Classification Image\skin_dataset_metadata.csv")
-print(df.head())  # printing first five rows of the file
-print(df.columns)
+#print(df.head())  # printing first five rows of the file
+#print(df.columns)
 
 '''
 df = df.iloc[:2000]  # Loading only first 1000 datapoints for memory reasons
@@ -34,11 +33,7 @@ for i in tqdm(range(df.shape[0])):
     img = img / 255.
     X_dataset.append(img)
 
-
-
 X = np.array(X_dataset)
-
-
 
 
 # Id and Genre are not labels to be trained. So drop them from the dataframe.
@@ -75,7 +70,7 @@ model.add(Dense(128, activation='relu'))
 model.add(Dropout(0.5))
 model.add(Dense(64, activation='relu'))
 model.add(Dropout(0.5))
-model.add(Dense(3, activation='sigmoid'))
+model.add(Dense(5, activation='sigmoid'))
 
 # Do not use softmax for multilabel classification
 # Softmax is useful for mutually exclusive classes, either cat or dog but not both.
@@ -89,11 +84,12 @@ model.add(Dense(3, activation='sigmoid'))
 model.summary()
 
 
+
 # Binary cross entropy of each label. So no really a binary classification problem but
 # Calculating binary cross entropy for each label.
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
-history = model.fit(X_train, y_train, epochs=10, validation_data=(X_test, y_test), batch_size=64)
+history = model.fit(X_train, y_train, epochs=15, validation_data=(X_test, y_test), batch_size=64)
 
 '''
 # plot the training and validation accuracy and loss at each epoch
@@ -108,8 +104,8 @@ plt.ylabel('Loss')
 plt.legend()
 plt.show()
 
-acc = history.history['acc']
-val_acc = history.history['val_acc']
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
 plt.plot(epochs, acc, 'y', label='Training acc')
 plt.plot(epochs, val_acc, 'r', label='Validation acc')
 plt.title('Training and validation accuracy')
@@ -119,10 +115,11 @@ plt.legend()
 plt.show()
 '''
 
+
 #################################################
 # Validate on an image
 # img = image.load_img('movie_dataset_multilabel/images/tt4425064.jpg', target_size=(SIZE,SIZE,3))
-img = tf.keras.utils.load_img(r"D:\CHINTYA'S\Privacy\Skripsi\Image Classification G-Colab\Multilabel Classification Image\try_acne.jpg", target_size=(SIZE, SIZE, 3))
+img = tf.keras.utils.load_img(r"D:\CHINTYA'S\Privacy\Skripsi\Image Classification G-Colab\Multilabel Classification Image\try_clearSkin.jpg", target_size=(SIZE, SIZE, 3))
 
 img = tf.keras.utils.img_to_array(img)
 img = img / 255.
@@ -131,14 +128,15 @@ img = np.expand_dims(img, axis=0)
 
 classes = np.array(df.columns[2:])  # Get array of all classes
 proba = model.predict(img)  # Get probabilities for each class
-sorted_categories = np.argsort(proba[0])[:-11:-1]  # Get class names for top 10 categories
+sorted_categories = np.argsort(proba[0])[:-7:-1]  # Get class names for top 5 categories
+
+
 
 # Print classes and corresponding probabilities
-for i in range(10):
+for i in range(min(7, len(sorted_categories) - 1)):
     print("{}".format(classes[sorted_categories[i]]) + " ({:.3})".format(proba[0][sorted_categories[i]]))
 
 ###################################################
 
 _, acc = model.evaluate(X_test, y_test)
 print("Accuracy = ", (acc * 100.0), "%")
-
